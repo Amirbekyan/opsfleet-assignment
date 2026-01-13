@@ -1,57 +1,30 @@
-    Cloud Environment Structure:
-
-        Recommend the optimal number and purpose of AWS accounts/GCP  Projects for Innovate Inc. and justify your choice. Consider best practices for isolation, billing, and management.
-
-    Network Design:
-
-        Design the Virtual Private Cloud (VPC) architecture.
-
-        Describe how you will secure the network.
-
-    Compute Platform:
-
-        Detail how you will leverage Kubernetes Service to deploy and manage the application.
-
-        Describe your approach to node groups, scaling, and resource allocation within the cluster.
-
-        Explain your strategy for containerization, including image building, registry, and deployment processes.
-
-    Database:
-
-        Recommend the appropriate service for the PostgreSQL database and justify your choice.
-
-        Outline your approach to database backups, high availability, and disaster recovery.
-
-
-
-
 ## Architectural Design Document: Innovate Inc. Cloud Infrastructure
 
 ### Summary
-This document outlines the cloud infrastructure design for Innovate Inc.'s web application.  The solution utilizes AWS as the cloud provider, leveraging Amazon EKS for managed Kubernetes to ensure scalability and portability.  The deployment pipeline follows a GitOps methodology using GitHub Actions and ArgoCD to ensure rapid, secure, and reliable delivery.
+This document outlines the cloud infrastructure design for Innovate Inc.'s web application.  The solution utilizes AWS as the cloud provider, leveraging Amazon EKS for managed Kubernetes to ensure scalability and portability.  The deployment pipeline follows a GitOps methodology using GitHub Actions and ArgoCD to ensure rapid, secure and reliable delivery.
 
 ### Cloud Environment Structure
 To adhere to the principle of least privilege we recommend a multi-account strategy using AWS Organizations.
 
 Recommended Account Structure:
- * Management Account (Root): Used strictly for billing, AWS SSO (Identity Center) user management and SCPs (Service Control Policies).  No resources run here.
- * Shared Services / DevOps Account: Hosts the ECR (Container Registry) and potentially centralized tooling.
- * Staging Account: A replica of production for testing.  Lower resources/costs.
+ * Root Account: Used strictly for billing, AWS SSO (Identity Center) user management and SCPs (Service Control Policies).  No resources run here.
+ * Security Account: ??
+ * Log Archive Account: Hosts CloudTrail and Config logs ??from all accounts??
+ * Service Account: Hosts the ECR (Container Registry) and potentially centralized tooling.
  * Production Account: The live environment.
-
-> [!IMPORTANT]
-> Isolate production data from development mistakes. If a developer accidentally scripts a "delete all" command in Staging, Production remains untouched.
+ * Staging Account: A replica of production for testing.  Lower resources/costs.
+ * Development Account: A similare environment simplified for flexibilty in debugging and cost efficiency.
 
 ### Network Design
 The network is designed for high availability and security, spanning 3 Availability Zones (AZs) within the selected region.
 
 VPC Architecture:
-CIDR Block: 10.0.0.0/16 (Provides 65k+ IPs, ample room for growth).
+CIDR Block: 10.0.0.0/16 (Provides 65K+ IPs, ample room for growth).
 
 Subnet Strategy (Per AZ):
- * Public Subnets: Host the Application Load Balancer (ALB) and NAT Gateways. Direct internet access via Internet Gateway (IGW).
- * Private App Subnets: Host EKS Worker Nodes. No direct internet access; outbound traffic routes through NAT Gateways.
- * Private Data Subnets: Host RDS databases. Strictly isolated with no internet route.
+ * Public Subnet: Host the Application Load Balancer (ALB) and NAT Gateways.  Direct internet access via Internet Gateway (IGW).
+ * Private Subnet: Host EKS Worker Nodes.  No direct internet access, outbound traffic routes through NAT Gateways.
+ * Intra Subnet: Host RDS databases.  Strictly isolated with no internet route.
 
 Network Security:
  * Security Groups: Strictly defined firewall rules (e.g., RDS only accepts traffic on port 5432 from the EKS Worker Node Security Group).
@@ -84,7 +57,11 @@ Containerization Strategy:
 ### Database Architecture
 Amazon RDS Aurora for PostgreSQL is the chosen managed database service.
 
+
+
 Service Choice: RDS (instead of Aurora) is cost-effective for the initial "low load" phase while providing a clear upgrade path to Aurora Serverless if traffic spikes unpredictably.
+
+
 
 High Availability: Multi-AZ Deployment. AWS automatically provisions a primary DB and a synchronous standby replica in a different AZ. If the primary fails, AWS handles the failover automatically.
 
