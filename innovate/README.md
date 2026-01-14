@@ -94,4 +94,4 @@ Savings Plans: Commit to Compute Savings Plans for baseline usage (like the Data
 
 This diagram illustrates the flow of traffic from the user to the application, the segregation of subnets for security and the GitOps pipeline connecting GitHub, ECR, and the EKS Cluster.
 
-![diagram](/aws-arch.png)
+![diagram](./aws-arch.png)
