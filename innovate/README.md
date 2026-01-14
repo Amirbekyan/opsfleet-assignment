@@ -3,14 +3,18 @@
 ### Summary
 This document outlines the cloud infrastructure design for Innovate Inc.'s web application.  The solution utilizes AWS as the cloud provider, leveraging Amazon EKS for managed Kubernetes to ensure scalability and portability.  The deployment pipeline follows a GitOps methodology using GitHub Actions and ArgoCD to ensure rapid, secure and reliable delivery.
 
+### Diagram
+This diagram illustrates the flow of traffic from the user to the application, the segregation of subnets for security and the GitOps pipeline connecting GitHub, ECR, and the EKS Cluster.
+
+![diagram](./aws-arch.svg)
+
 ### Cloud Environment Structure
 To adhere to the principle of least privilege we recommend a multi-account strategy using AWS Organizations.
 
 Recommended Account Structure:
  * Root Account: Used strictly for billing, AWS SSO (Identity Center) user management and SCPs (Service Control Policies).  No resources run here.
- * Security Account: ??
- * Log Archive Account: Hosts CloudTrail and Config logs ??from all accounts??
- * Service Account: Hosts the ECR (Container Registry) and potentially centralized tooling.
+ * Log Archive Account: Hosts CloudTrail and Config logs from all accounts.
+ * Service Account: Hosts the ECR (Container Registry), Client VPN and potentially centralized tooling.
  * Production Account: The live environment.
  * Staging Account: A replica of production for testing.  Lower resources/costs.
  * Development Account: A similar environment simplified for flexibilty in debugging and cost efficiency.
@@ -32,7 +36,7 @@ Network Security:
  * WAF (Web Application Firewall): Attached to the ALB to protect against SQL injection, XSS, and common bot attacks.
 
 ### Compute Platform
-We will leverage Amazon Elastic Kubernetes Service (EKS) to manage the containerized application.
+We will leverage Amazon Elastic Kubernetes Service (EKS) to manage the containerized applications.  In production and staging environments the single page front-end app will be hosted on S3 bucket and served via CloudFront.
 
 Cluster Configuration:
 Control Plane: Fully managed by AWS across multiple AZs.
@@ -52,13 +56,7 @@ Containerization Strategy:
  * Registry: Amazon ECR (Elastic Container Registry) with image scanning enabled to detect vulnerabilities on push.
 
 ### Database Architecture
-Amazon RDS Aurora for PostgreSQL is the chosen managed database service.
-
-
-
-Service Choice: RDS (instead of Aurora) is cost-effective for the initial "low load" phase while providing a clear upgrade path to Aurora Serverless if traffic spikes unpredictably.
-
-
+Amazon Aurora for PostgreSQL is the chosen managed database service.  Aurora brings high throughput, 99.999% multi-region availability and DSQL alongside with full PostgreSQL compatibility.
 
 High Availability: Multi-AZ Deployment. AWS automatically provisions a primary DB and a synchronous standby replica in a different AZ. If the primary fails, AWS handles the failover automatically.
 
@@ -87,11 +85,5 @@ CD (ArgoCD):
 > Auditability: Git history becomes the history of your infrastructure and application deployments.
 
 ### Cost Optimization
-Spot Instances: Use Spot Instances for the EKS Node Groups running stateless services (frontend/backend) to save up to 70% on compute costs.
+Spot Instances: Use Spot Instances for the EKS Node Groups running stateless services (frontend/backend) in development environment to save up to 70% on compute costs.
 Savings Plans: Commit to Compute Savings Plans for baseline usage (like the Database) for a 1-3 year term.
-
-### Diagram
-
-This diagram illustrates the flow of traffic from the user to the application, the segregation of subnets for security and the GitOps pipeline connecting GitHub, ECR, and the EKS Cluster.
-
-![diagram](./aws-arch.svg)
