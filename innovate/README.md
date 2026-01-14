@@ -13,7 +13,7 @@ Recommended Account Structure:
  * Service Account: Hosts the ECR (Container Registry) and potentially centralized tooling.
  * Production Account: The live environment.
  * Staging Account: A replica of production for testing.  Lower resources/costs.
- * Development Account: A similare environment simplified for flexibilty in debugging and cost efficiency.
+ * Development Account: A similar environment simplified for flexibilty in debugging and cost efficiency.
 
 ### Network Design
 The network is designed for high availability and security, spanning 3 Availability Zones (AZs) within the selected region.
@@ -44,11 +44,8 @@ Scaling Strategy:
  * Cluster Autoscaler: Automatically adds/removes EC2 nodes based on pending pods.
  * Horizontal Pod Autoscaler (HPA): Scales the number of Flask/React pods based on CPU/Memory usage.
 
-
-
-Ingress: AWS Load Balancer Controller will provision an ALB to route external traffic to internal services.
-
-
+Ingress:
+Kubernetes Gateway API will be used to manage ingress traffic.  AWS Load Balancer will route external traffic to an Nginx instance which will itself route requests to appropriate application pods within the cluster further on.
 
 Containerization Strategy:
  * Image Building: Dockerfiles will be optimized (multi-stage builds) to keep images lightweight.
@@ -64,6 +61,9 @@ Service Choice: RDS (instead of Aurora) is cost-effective for the initial "low l
 
 
 High Availability: Multi-AZ Deployment. AWS automatically provisions a primary DB and a synchronous standby replica in a different AZ. If the primary fails, AWS handles the failover automatically.
+
+Auxiliary Access:
+Developers connect to databases through Client VPN configured in Service Account.
 
 Backup & Recovery:
  * Automated daily snapshots with a retention period of 30 days.
@@ -93,3 +93,5 @@ Savings Plans: Commit to Compute Savings Plans for baseline usage (like the Data
 ### Diagram
 
 This diagram illustrates the flow of traffic from the user to the application, the segregation of subnets for security and the GitOps pipeline connecting GitHub, ECR, and the EKS Cluster.
+
+![diagram](/aws-arch.png)
