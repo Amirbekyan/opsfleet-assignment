@@ -1,0 +1,43 @@
+{{- range .Values.ec2NodeClasses }}
+{{- if .enabled }}
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: {{ .name }}
+spec:
+  amiFamily: {{ .amiFamily | default "AL2023" }}
+  amiSelectorTerms:
+    {{- if .amiSelector }}
+    - id: {{ .amiSelector }}
+    {{- else }}
+    - alias: al2023@latest
+    {{- end }}
+
+  {{- if .role }}
+  role: {{ .role }}
+  {{- else }}
+  role: KarpenterNodeRole-{{ .clusterName }}
+  {{- end }}
+
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: {{ .clusterName }}
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: {{ .clusterName }}
+
+  metadataOptions:
+    httpEndpoint: enabled
+    httpPutResponseHopLimit: 2
+    httpTokens: optional
+
+  tags:
+    karpenter.sh/discovery: {{ .clusterName }}
+
+  {{- if .userData }}
+  userData: |-
+{{ .userData | indent 4 }}
+  {{- end }}
+---
+{{- end }}
+{{- end }}
