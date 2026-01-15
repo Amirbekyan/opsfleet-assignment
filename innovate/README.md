@@ -81,9 +81,12 @@ CD (ArgoCD):
 
 > [!NOTE]
 > Why this approach?
+>
 > Security: The CI system (GitHub) does not need access to the production cluster. The cluster pulls changes from inside.
+>
 > Auditability: Git history becomes the history of your infrastructure and application deployments.
 
 ### Cost Optimization
 Spot Instances: Use Spot Instances for the EKS Node Groups running stateless services (frontend/backend) in development environment to save up to 70% on compute costs.
+
 Savings Plans: Commit to Compute Savings Plans for baseline usage (like the Database) for a 1-3 year term.
