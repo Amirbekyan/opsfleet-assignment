@@ -81,6 +81,7 @@ CD (ArgoCD):
 
 > [!NOTE]
 > Why this approach?
+>
 > Security: The CI system (GitHub) does not need access to the production cluster. The cluster pulls changes from inside.
 >
 > Auditability: Git history becomes the history of your infrastructure and application deployments.
